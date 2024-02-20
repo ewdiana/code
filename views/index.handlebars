@@ -1,2 +1,11 @@
-<h1>{{title}}</h1>
-<p>Welcome to BookedIn</p>
+  <body>
+    {{#if flash}}
+      <div>
+        <strong>{{flash.intro}}</strong> {{{flash.message}}}
+      </div>
+    {{/if}}
+
+    <h1>{{title}}</h1>
+    <p>Welcome to BookedIn</p>
+   
+    </body>

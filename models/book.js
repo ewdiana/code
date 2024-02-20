@@ -16,6 +16,7 @@ exports.update = (book) => {
   books[book.id] = book;
 }
 
+
 exports.upsert = (book) => {
   if (book.authorIds && ! Array.isArray(book.authorIds)) {
     book.authorIds = [book.authorIds];

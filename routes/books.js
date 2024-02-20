@@ -5,10 +5,11 @@ const Author = require('../models/author');
 
 const router = express.Router();
 
+ // Uses hard-coded books
 router.get('/', function(req, res, next) {
   const books = Book.all
   res.render('books/index', { title: 'BookedIn || Books', books: books });
-});
+});  
 
 router.get('/form', async (req, res, next) => {
   res.render('books/form', { title: 'BookedIn || Books', authors: Author.all });
@@ -18,8 +19,22 @@ router.get('/form', async (req, res, next) => {
 router.post('/upsert', async (req, res, next) => {
   console.log('body: ' + JSON.stringify(req.body))
   Book.upsert(req.body);
+  let createdOrupdated = req.body.id ? 'updated' : 'created';
+  req.session.flash = {
+    type: 'info',
+    intro: 'Success!',
+    message: `the book has been ${createdOrupdated}!`,
+  };
   res.redirect(303, '/books')
 });
+
+/*
+router.post('/upsert', async (req, res, next) => {
+  console.log('body: ' + JSON.stringify(req.body))
+  Book.upsert(req.body);
+  res.redirect(303, '/books')
+});
+*/
 
 router.get('/edit', async (req, res, next) => {
   let bookIndex = req.query.id;
