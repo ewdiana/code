@@ -2,6 +2,7 @@ const express = require('express');
 
 const Book = require('../models/book');
 const Author = require('../models/author');
+const BookUser = require('../models/book_user');
 
 const router = express.Router();
 
@@ -42,6 +43,7 @@ router.get('/edit', async (req, res, next) => {
   res.render('books/form', { title: 'BookedIn || Books', book: book, bookIndex: bookIndex, authors: Author.all });
 });
 
+/*
 router.get('/show/:id', async (req, res, next) => {
   let templateVars = {
     title: 'BookedIn || Books',
@@ -49,6 +51,25 @@ router.get('/show/:id', async (req, res, next) => {
   }
   if (templateVars.book.authorIds) {
     templateVars['authors'] = templateVars.book.authorIds.map((authorId) => Author.get(authorId))
+  }
+  res.render('books/show', templateVars);
+});*/
+
+router.get('/show/:id', async (req, res, next) => {
+  let templateVars = {
+    title: 'BookedIn || Books',
+    book: Book.get(req.params.id),
+    bookId: req.params.id,
+    statuses: BookUser.statuses
+  }
+  if (templateVars.book.authorIds) {
+    templateVars['authors'] = templateVars.book.authorIds.map((authorId) => Author.get(authorId));
+  }
+  /*if (templateVars.book.genreId) {
+    templateVars['genre'] = Genre.get(templateVars.book.genreId);
+  }*/
+  if (req.session.currentUser) {
+    templateVars['bookUser'] = BookUser.get(req.params.id, req.session.currentUser.email);
   }
   res.render('books/show', templateVars);
 });
