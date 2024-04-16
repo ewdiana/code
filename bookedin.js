@@ -3,7 +3,6 @@ const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 const expressSession = require('express-session')
 const csrf = require('csurf')
-// const db = require('./database')
 
 const { credentials } = require('./config')
 
@@ -11,12 +10,30 @@ const indexRouter = require('./routes/index');
 const authorsRouter = require('./routes/authors');
 const booksRouter = require('./routes/books');
 const usersRouter = require('./routes/users');
+const genresRouter = require('./routes/genres');
 const booksUsersRouter = require('./routes/books_users');
-
+const commentsRouter = require('./routes/comments');
 
 const app = express()
 const port = 3000
 
+//extra platform setup
+app.use(bodyParser.urlencoded({ extended: true }))
+app.use(cookieParser(credentials.cookieSecret));
+app.use(expressSession({
+  secret: credentials.cookieSecret,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days
+}));
+
+// this must come after we link in body-parser,
+// cookie-parser, and express-session
+app.use(csrf({ cookie: true }))
+app.use((req, res, next) => {
+  res.locals._csrfToken = req.csrfToken()
+  next()
+})
 
 // view engine setup
 var handlebars = require('express-handlebars').create({
@@ -38,24 +55,8 @@ var handlebars = require('express-handlebars').create({
     dateStr: (v) => v && v.toLocaleDateString("en-US")
   }
 });
-
 app.engine('handlebars', handlebars.engine);
 app.set('view engine', 'handlebars');
-app.use(bodyParser.urlencoded({ extended: true }))
-app.use(cookieParser(credentials.cookieSecret));
-app.use(expressSession({
-  secret: credentials.cookieSecret,
-  resave: false,
-  saveUninitialized: false,
-  cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days
-}));
-// this must come after we link in body-parser,
-// cookie-parser, and express-session
-app.use(csrf({ cookie: true }))
-app.use((req, res, next) => {
-  res.locals._csrfToken = req.csrfToken()
-  next()
-})
 
 // session configuration
 //make it possible to use flash messages, and pass them to the view
@@ -64,22 +65,20 @@ app.use((req, res, next) => {
   delete req.session.flash
   next()
 })
-
-// session configuration
 //make the current user available in views
 app.use((req, res, next) => {
   res.locals.currentUser = req.session.currentUser
   next()
 })
 
-
-
+// routes
 app.use('/', indexRouter);
 app.use('/authors', authorsRouter);
 app.use('/books', booksRouter);
 app.use('/users', usersRouter);
+app.use('/genres', genresRouter);
 app.use('/books_users', booksUsersRouter);
-
+app.use('/comments', commentsRouter);
 
 // custom 404 page
 app.use((req, res) => {
